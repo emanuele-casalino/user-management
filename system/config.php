@@ -9,7 +9,7 @@ class Config {
     const DB_HOST = "localhost";
     const DB_USERNAME = "root";
     const DB_PASSWORD = "";
-    const DB_NAME = "test";
+    const DB_NAME = "thirdmillenniummedia";
     // set table parameters
     const USERS_TABLE_NAME = "users";
     // set variables parameters
