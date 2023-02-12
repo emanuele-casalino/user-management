@@ -12,23 +12,82 @@
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
     </head>
     <body>
+        <nav class="navbar navbar-expand-lg navbar-dark bg-secondary">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="#">
+                    <?= htmlspecialchars($page_dictionary["menus"]["site_menu"]) ?></a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#secondaryNavbarContent" aria-controls="secondaryNavbarContent" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="secondaryNavbarContent">
+                    <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <img src="/<?= Config::APP_DIR ?>/images/langs/<?= $page_variables->page_lang ?>.jpg" style="max-height: 16px;" />
+                                <?= htmlspecialchars($page_dictionary["variables"]["language"]) ?></a>
+                            <ul class="dropdown-menu">
+                                <?php
+                                foreach ($page_variables->page_langs as $page_lang) {
+                                    ?>
+                                    <li>
+                                        <a class="dropdown-item" href="<?= $page_lang->url ?>">
+                                            <img src="/<?= Config::APP_DIR ?>/images/langs/<?= $page_lang->value ?>.jpg" style="max-height: 16px;" />
+                                            <?= htmlspecialchars($page_dictionary["languages"][$page_lang->value]) ?></a>
+                                    </li>
+                                    <?php
+                                }
+                                ?>
+                            </ul>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" aria-current="page" href="<?= Config::MAIN_SITE ?>">
+                                <?= htmlspecialchars($page_dictionary["commands"]["return_to_main_site"]) ?></a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
         <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
             <div class="container-fluid">
                 <a class="navbar-brand" href="#">
                     <?= htmlspecialchars($page_dictionary["menus"]["main_menu"]) ?></a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#primaryNavbarContent" aria-controls="primaryNavbarContent" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
-                <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <div class="collapse navbar-collapse" id="primaryNavbarContent">
                     <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                        <li class="nav-item">
-                            <a class="nav-link active" aria-current="page" href="<?= $page_variables->app_url_prefix ?>">
-                                <?= htmlspecialchars($page_dictionary["pages"]["home"]) ?></a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link active" aria-current="page" href="<?= $page_variables->app_url_prefix ?>/<?= Consts::INFO_PAGE_NAME ?>">
-                                <?= htmlspecialchars($page_dictionary["pages"]["info"]) ?></a>
-                        </li>
+                        <?php
+                        if ($page_variables->page_name == Consts::HOME_PAGE_NAME) {
+                            ?>
+                            <li class="nav-item">
+                                <a class="nav-link active" aria-current="page" href="<?= $page_variables->app_url_prefix ?>">
+                                    <?= htmlspecialchars($page_dictionary["pages"][Consts::HOME_PAGE_NAME]) ?></a>
+                            </li>
+                            <?php
+                        } else {
+                            ?>
+                            <li class="nav-item">
+                                <a class="nav-link" aria-current="page" href="<?= $page_variables->app_url_prefix ?>">
+                                    <?= htmlspecialchars($page_dictionary["pages"][Consts::HOME_PAGE_NAME]) ?></a>
+                            </li>
+                            <?php
+                        }
+                        if ($page_variables->page_name == Consts::INFO_PAGE_NAME) {
+                            ?>
+                            <li class="nav-item">
+                                <a class="nav-link active" aria-current="page" href="<?= $page_variables->app_url_prefix ?>/<?= Consts::INFO_PAGE_NAME ?>">
+                                    <?= htmlspecialchars($page_dictionary["pages"][Consts::INFO_PAGE_NAME]) ?></a>
+                            </li>
+                            <?php
+                        } else {
+                            ?>
+                            <li class="nav-item">
+                                <a class="nav-link" aria-current="page" href="<?= $page_variables->app_url_prefix ?>/<?= Consts::INFO_PAGE_NAME ?>">
+                                    <?= htmlspecialchars($page_dictionary["pages"][Consts::INFO_PAGE_NAME]) ?></a>
+                            </li>
+                            <?php
+                        }
+                        ?>
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 <?php
@@ -48,32 +107,14 @@
                                     ?>
                                     <li>
                                         <a class="dropdown-item" href="<?= $page_variables->app_url_prefix ?>/<?= Consts::LOGOUT_PAGE_NAME ?>">
-                                            <?= htmlspecialchars($page_dictionary["pages"]["logout"]) ?></a>
+                                            <?= htmlspecialchars($page_dictionary["pages"][Consts::LOGOUT_PAGE_NAME]) ?></a>
                                     </li>
                                     <?php
                                 } else {
                                     ?>
                                     <li>
                                         <a class="dropdown-item" href="<?= $page_variables->app_url_prefix ?>/<?= Consts::LOGIN_PAGE_NAME ?>">
-                                            <?= htmlspecialchars($page_dictionary["pages"]["login"]) ?></a>
-                                    </li>
-                                    <?php
-                                }
-                                ?>
-                            </ul>
-                        </li>
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <img src="/<?= Config::APP_DIR ?>/images/langs/<?= $page_variables->page_lang ?>.jpg" style="max-height: 16px;" />
-                                <?= htmlspecialchars($page_dictionary["variables"]["language"]) ?></a>
-                            <ul class="dropdown-menu">
-                                <?php
-                                foreach ($page_variables->page_langs as $page_lang) {
-                                    ?>
-                                    <li>
-                                        <a class="dropdown-item" href="<?= $page_lang->url ?>">
-                                            <img src="/<?= Config::APP_DIR ?>/images/langs/<?= $page_lang->value ?>.jpg" style="max-height: 16px;" />
-                                            <?= htmlspecialchars($page_dictionary["languages"][$page_lang->value]) ?></a>
+                                            <?= htmlspecialchars($page_dictionary["pages"][Consts::LOGIN_PAGE_NAME]) ?></a>
                                     </li>
                                     <?php
                                 }

@@ -1,3 +1,3 @@
 <?php
 
-require_once($page_variables->redirect_to_home_filename);
+require_once(Consts::REDIRECT_TO_HOME_TEMPLATE_FILENAME);

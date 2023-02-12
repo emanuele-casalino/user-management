@@ -39,17 +39,13 @@ if (count($page_variables->messages) >= 1) {
                    maxlength="<?= Config::MAX_PASSWORD_LENGTH ?>">
         </div>
         <div class="mb-3">
-            <label for="input-username" class="form-label">
-                <?= htmlspecialchars($page_dictionary["variables"]["username"]) ?></label>
-            <input class="form-control"
-                   id="input-username"
-                   name="username"
-                   placeholder="<?= htmlspecialchars($page_dictionary["variables"]["username"]) ?>"
-                   type="text" 
-                   maxlength="<?= Config::MAX_USERNAME_LENGTH ?>">
+            <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="input-confirm-unsubscription" name="confirm_unsubscription" value="1">
+                <label class="form-check-label" for="input-confirm-unsubscription"><?= htmlspecialchars($page_dictionary["variables"]["confirm_unsubscription"]) ?></label>
+            </div>
         </div>
         <button class="btn btn-primary">
-            <?= htmlspecialchars($page_dictionary["pages"]["change_username"]) ?>
+            <?= htmlspecialchars($page_dictionary["pages"]["unsubscribe_from_the_site"]) ?>
         </button>
         <?php
     }

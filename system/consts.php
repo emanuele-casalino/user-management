@@ -20,13 +20,15 @@ class Consts {
     const REQUEST_ACTIVATION_LINK_PAGE_NAME = "request_activation_link";
     const SET_PASSWORD_PAGE_NAME = "set_password";
     const SIGN_UP_ON_THE_SITE_PAGE_NAME = "sign_up_on_the_site";
+    const UNSUBSCRIBE_FROM_THE_SITE_PAGE_NAME = "unsubscribe_from_the_site";
     const VIEW_USER_INFO_PAGE_NAME = "view_user_info";
     // languages
     const DEFAULT_LANGUAGE = "en";
     const LANGUAGES = ["it", "en"];
     // lengths
-    const MAX_LOGIN_SESSION_LENGTH = 3600;
-    const MAX_EMAIL_SESSION_LENGTH = 3600;
+    const MAX_LOGIN_SESSION_LENGTH = 60 * 60;
+    const MAX_EMAIL_WAITING_LENGTH = 60 * 60;
+    const MAX_PASSWORD_LIFETIME_LENGTH = 30 * 24 * 60 * 60;
     // sessions
     const USER_SESSION_VARIABLE_NAME = "emanuele_auth_session_user";
     // templates

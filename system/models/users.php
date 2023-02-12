@@ -27,6 +27,7 @@ class UsersModel {
      * @return void
      */
     public static function addUser(string $email, string $username): void {
+        $datetime_string = date("Y-m-d H:i:s");
         $query_string = "INSERT INTO " . Config::USERS_TABLE_NAME . "("
                 . Config::EMAIL_VARIABLE_NAME
                 . ","
@@ -35,6 +36,10 @@ class UsersModel {
                 . Config::PASSWORD_VARIABLE_NAME
                 . ","
                 . Config::IS_ACTIVE_OR_NOT_VARIABLE_NAME
+                . ","
+                . Config::CREATED_AT_VARIABLE_NAME
+                . ","
+                . Config::UPDATED_AT_VARIABLE_NAME
                 . ") VALUES ("
                 . "'" . self::$_connection->real_escape_string($email) . "'"
                 . ","
@@ -43,6 +48,10 @@ class UsersModel {
                 . "'" . password_hash(UsersLibrary::getRandomPassword(), PASSWORD_BCRYPT, ['cost' => Config::BCRYPT_COST]) . "'"
                 . ","
                 . (Config::ACTIVE_USER_BOOLEAN_VALUE ? "FALSE" : "TRUE")
+                . ","
+                . "'" . $datetime_string . "'"
+                . ","
+                . "'" . $datetime_string . "'"
                 . ")";
         self::$_connection->query($query_string);
     }
@@ -127,7 +136,8 @@ class UsersModel {
     public static function editUsername(int $user_id, string $username): void {
         $sanitized_username = self::$_connection->real_escape_string($username);
         $query_string = "UPDATE " . Config::USERS_TABLE_NAME
-                . " SET " . Config::USERNAME_VARIABLE_NAME . " = '" . $sanitized_username . "'"
+                . " SET " . Config::USERNAME_VARIABLE_NAME . " = '" . $sanitized_username . "',"
+                . "     " . Config::UPDATED_AT_VARIABLE_NAME . " = '" . date("Y-m-d H:i:s") . "'"
                 . " WHERE " . Config::ID_VARIABLE_NAME . " = " . $user_id;
         self::$_connection->query($query_string);
     }
@@ -139,10 +149,13 @@ class UsersModel {
      * @return void
      */
     public static function editPassword(int $user_id, string $password): void {
+        $datetime_string = date("Y-m-d H:i:s");
         $hashed_password = password_hash($password, PASSWORD_BCRYPT, ['cost' => Config::BCRYPT_COST]);
         $sanitized_password = self::$_connection->real_escape_string($hashed_password);
         $query_string = "UPDATE " . Config::USERS_TABLE_NAME
-                . " SET " . Config::PASSWORD_VARIABLE_NAME . " = '" . $sanitized_password . "'"
+                . " SET " . Config::PASSWORD_VARIABLE_NAME . " = '" . $sanitized_password . "',"
+                . "     " . Config::LAST_PASSWORD_DATE_VARIABLE_NAME . " = '" . $datetime_string . "',"
+                . "     " . Config::UPDATED_AT_VARIABLE_NAME . " = '" . $datetime_string . "'"
                 . " WHERE " . Config::ID_VARIABLE_NAME . " = " . $user_id;
         self::$_connection->query($query_string);
     }
@@ -156,7 +169,8 @@ class UsersModel {
     public static function editResetDate(int $user_id, string $reset_date): void {
         $sanitized_reset_date = self::$_connection->real_escape_string($reset_date);
         $query_string = "UPDATE " . Config::USERS_TABLE_NAME
-                . " SET " . Config::RESET_DATE_VARIABLE_NAME . " = '" . $sanitized_reset_date . "'"
+                . " SET " . Config::RESET_DATE_VARIABLE_NAME . " = '" . $sanitized_reset_date . "',"
+                . "     " . Config::UPDATED_AT_VARIABLE_NAME . " = '" . date("Y-m-d H:i:s") . "'"
                 . " WHERE " . Config::ID_VARIABLE_NAME . " = " . $user_id;
         self::$_connection->query($query_string);
     }
@@ -169,7 +183,8 @@ class UsersModel {
      */
     public static function activateUser(int $user_id, bool $activate_user): void {
         $query_string = "UPDATE " . Config::USERS_TABLE_NAME
-                . " SET " . Config::IS_ACTIVE_OR_NOT_VARIABLE_NAME . " = " . (Config::ACTIVE_USER_BOOLEAN_VALUE ? $activate_user : (!$activate_user))
+                . " SET " . Config::IS_ACTIVE_OR_NOT_VARIABLE_NAME . " = " . ((Config::ACTIVE_USER_BOOLEAN_VALUE xor $activate_user) ? "FALSE" : "TRUE") . ","
+                . "     " . Config::UPDATED_AT_VARIABLE_NAME . " = '" . date("Y-m-d H:i:s") . "'"
                 . " WHERE " . Config::ID_VARIABLE_NAME . " = " . $user_id;
         self::$_connection->query($query_string);
     }
@@ -205,7 +220,7 @@ class UsersModel {
             return null;
         }
         $temp_user = $_SESSION[Consts::USER_SESSION_VARIABLE_NAME];
-        if (time() - $temp_user->time > Consts::MAX_LOGIN_SESSION_LENGTH) {
+        if (UsersLibrary::isUserSuspended($temp_user->user) || (time() - $temp_user->time) > Consts::MAX_LOGIN_SESSION_LENGTH) {
             unset($_SESSION[Consts::USER_SESSION_VARIABLE_NAME]);
             return null;
         }

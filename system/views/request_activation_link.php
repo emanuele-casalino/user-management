@@ -24,7 +24,7 @@ if (count($page_variables->messages) >= 1) {
     if ($page_variables->hide_form) {
         ?>
         <a class="btn btn-success" href="<?= $page_variables->app_url_prefix ?>/<?= Consts::HOME_PAGE_NAME ?>">
-            <?= htmlspecialchars($page_dictionary["pages"]["home"]) ?></a>
+            <?= htmlspecialchars($page_dictionary["pages"][Consts::HOME_PAGE_NAME]) ?></a>
         <?php
     } else {
         ?>

@@ -1,6 +1,7 @@
 {
     "app_title": "User management",
     "commands": {
+        "return_to_main_site": "Return to main site",
         "login": "Login",
         "retrieve_password": "Retrieve password"
     },
@@ -9,6 +10,7 @@
         "it": "Italian"
     },
     "menus": {
+        "site_menu": "Site menu",
         "main_menu": "Main menu"
     },
     "messages": {
@@ -25,10 +27,12 @@
         "empty_password_1": "Please enter the password (1).",
         "empty_password_2": "Please enter the password (2).",
         "empty_username": "Please enter the username.",
-        "guest_user": "utente ospite",
+        "guest_user": "guest user",
         "invalid_email": "Invalid email address.",
         "invalid_hash_for_password_recovery": "Invalid or expired hash. Please resubmit your password recovery request.",
         "new_passwords_mismatch": "The two new passwords entered must match.",
+        "not_enough_permissions": "Not enough permissions to view the page.",
+        "obsolete_password": "The password entered has been expired. Please request a new password.",
         "password_retrieve_error": "Unable to retrieve the password. Please check if the email address entered is correct, or try again later.",
         "password_retrieve_mail": "The password recovery request has been successful. Please click on the link:",
         "password_retrieve_successful": "The password recovery request has been successful. Please check the mail box associated with the entered address.",
@@ -43,6 +47,9 @@
         "site_registration_successful": "Site registration has been successful. Please check the mail box associated with the entered address.",
         "site_registration_successful_but_with_sending_mail_error": "Site registration has been successful, but an error has occurred while sending the activation link by email associated with the address entered. Then, please request a new activation link.",
         "unable_to_view_the_page": "Unable to view the page.",
+        "unsubscribing_from_the_site_error": "An error has occurred while unsubscribing from the site.",
+        "unsubscribing_from_the_site_successful": "Unsubscribing from the site has been successfully.",
+        "unsubscription_not_confirmed": "Unsubscribing from the site has not been confirmed.",
         "wrong_new_password_1_char_types": "The new password (1) must contain at least one uppercase letter, at least one lowercase letter, at least one digit and at least one special character.",
         "wrong_new_password_1_chars_[%s]": "The new password (1) must contain only the following characters: %s",
         "wrong_new_password_1_length_[%d,%d]": "New password (1) length must be between %d and %d characters.",
@@ -77,6 +84,7 @@
         "password_recovery": "Password recovery",
         "set_password": "Set passsword",
         "sign_up_on_the_site": "Sign up on the site",
+        "unsubscribe_from_the_site": "Unsubscribe from the site",
         "view_user_info": "View user information"
     },
     "values": {
@@ -85,6 +93,7 @@
     },
     "variables": {
         "author": "Author",
+        "confirm_unsubscription": "Confirm unsubscription",
         "contacts": "Contacts",
         "email_address": "Email address",
         "language": "Language",

@@ -115,6 +115,21 @@ class UsersLibrary {
 
     /**
      * 
+     * @param array $user
+     * @return bool
+     */
+    public static function isUserSuspended(array $user): bool {
+        if (self::isUserActive($user)) {
+            return false;
+        }
+        if ($user[Config::LAST_PASSWORD_DATE_VARIABLE_NAME]) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * 
      * @return string
      */
     public static function getRandomPassword(): string {

@@ -10,11 +10,7 @@ class Index {
      */
     public static function init(): void {
         $url = parse_url(urldecode(filter_input(INPUT_SERVER, "REQUEST_URI")));
-        if (isset($url["query"])) {
-            Application::echoPage($url["path"], $url["query"]);
-        } else {
-            Application::echoPage($url["path"], null);
-        }
+        Application::echoPage($url["path"]);
     }
 
 }

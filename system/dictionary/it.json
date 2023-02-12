@@ -1,6 +1,7 @@
 {
     "app_title": "Gestione degli utenti",
     "commands": {
+        "return_to_main_site": "Torna al sito principale",
         "login": "Accedi",
         "retrieve_password": "Recupera password"
     },
@@ -9,6 +10,7 @@
         "it": "Italiano"
     },
     "menus": {
+        "site_menu": "Menù del sito",
         "main_menu": "Menù principale"
     },
     "messages": {
@@ -29,6 +31,8 @@
         "invalid_email": "Indirizzo di posta elettronica non valido.",
         "invalid_hash_for_password_recovery": "Hash non valido o scaduto. Si prega di rifare la richiesta di recupero password.",
         "new_passwords_mismatch": "Le due nuove password immesse devono coincidere.",
+        "not_enough_permissions": "Permessi insufficienti per visualizzare la pagina.",
+        "obsolete_password": "La password immessa è scaduta. Si prega di richiedere una nuova password.",
         "password_retrieve_error": "Impossibile recuperare la password. Si prega di verificare se l'indirizzo di posta elettronica immesso risulti corretto, o di riprovare più tardi.",
         "password_retrieve_mail": "La richiesta di recupero password è avvenuta con successo. Si prega di fare click sul link:",
         "password_retrieve_successful": "La richiesta di recupero password è avvenuta con successo. Si prega di controllare la casella di posta elettronica associata all'indirizzo immesso.",
@@ -43,6 +47,9 @@
         "site_registration_successful": "L'iscrizione al sito è avvenuta con successo. Si prega di controllare la casella di posta elettronica associata all'indirizzo immesso.",
         "site_registration_successful_but_with_sending_mail_error": "L'iscrizione al sito è avvenuta con successo, ma si è verificato un errore durante l'invio del link di attivazione tramite posta elettronica associata all'indirizzo immesso. Quindi, si prega di richiedere un nuovo link di attivazione.",
         "unable_to_view_the_page": "Impossibile visualizzare la pagina.",
+        "unsubscribing_from_the_site_error": "Si è verificato un errore durante l'annullamento dell'iscrizione al sito.",
+        "unsubscribing_from_the_site_successful": "L'annullamento dell'iscrizione al sito è avvenuto con successo.",
+        "unsubscription_not_confirmed": "L'annullamento dell'iscrizione al sito non è stato confermato.",
         "wrong_new_password_1_char_types": "La nuova password (1) deve contenere almeno una lettera maiuscola, almeno una lettera minuscola, almeno una cifra e almeno un carattere speciale.",
         "wrong_new_password_1_chars_[%s]": "La nuova password (1) deve contenere soltanto i seguenti caratteri: %s",
         "wrong_new_password_1_length_[%d,%d]": "La lunghezza della nuova password (1) deve essere compresa tra %d e %d caratteri.",
@@ -77,6 +84,7 @@
         "password_recovery": "Recupero password",
         "set_password": "Imposta password",
         "sign_up_on_the_site": "Iscriviti al sito",
+        "unsubscribe_from_the_site": "Cancellati dal sito",
         "view_user_info": "Visualizza le informazioni dell'utente"
     },
     "values": {
@@ -85,6 +93,7 @@
     },
     "variables": {
         "author": "Autore",
+        "confirm_unsubscription": "Conferma l'annullamento dell'iscrizione",
         "contacts": "Contatti",
         "email_address": "Indirizzo di posta elettronica",
         "language": "Lingua",

@@ -16,7 +16,7 @@ class Controller {
      */
     private static function _setLoginValues(array &$referenced_page_variables): void {
         $referenced_page_variables["messages"] = [];
-        $referenced_page_variables["redirect_to_home_filename"] = null;
+        $referenced_page_variables["redirect_to_home"] = false;
         //
         if (filter_input(INPUT_SERVER, "REQUEST_METHOD") != "POST") {
             return;
@@ -43,22 +43,31 @@ class Controller {
         } else {
             $referenced_page_variables["messages"] = array_merge($referenced_page_variables["messages"], UsersLibrary::checkPassword($password, "password"));
         }
-        //
         if (!empty($referenced_page_variables["messages"])) {
             return;
         }
         //
         $user = UsersModel::getUserGivenUsername($username);
-        if ($user && UsersLibrary::isUserActive($user) && password_verify($password, $user[Config::PASSWORD_VARIABLE_NAME])) {
-            UsersModel::storeIntoSession($user);
-            $referenced_page_variables["redirect_to_home_filename"] = Consts::REDIRECT_TO_HOME_TEMPLATE_FILENAME;
-        } else {
+        if (!($user && UsersLibrary::isUserActive($user) && password_verify($password, $user[Config::PASSWORD_VARIABLE_NAME])) || UsersLibrary::isUserSuspended($user)) {
             $referenced_page_variables["messages"][] = (object) [
                         "type" => "warning",
                         "lemma" => "authentication_error",
                         "parameters" => null
             ];
+            return;
         }
+        if (time() - strtotime($user[Config::LAST_PASSWORD_DATE_VARIABLE_NAME]) >= Consts::MAX_PASSWORD_LIFETIME_LENGTH) {
+            $referenced_page_variables["messages"][] = (object) [
+                        "type" => "warning",
+                        "lemma" => "obsolete_password",
+                        "parameters" => null
+            ];
+            return;
+        }
+        //
+        UsersModel::storeIntoSession($user);
+        $referenced_page_variables["logged_user"] = UsersModel::getFromSession();
+        $referenced_page_variables["redirect_to_home"] = true;
     }
 
     /**
@@ -97,7 +106,6 @@ class Controller {
         } else {
             $referenced_page_variables["messages"] = array_merge($referenced_page_variables["messages"], UsersLibrary::checkUsername($username));
         }
-        //
         if (!empty($referenced_page_variables["messages"])) {
             return;
         }
@@ -192,49 +200,51 @@ class Controller {
         } else {
             $referenced_page_variables["messages"] = array_merge($referenced_page_variables["messages"], UsersLibrary::checkEmail($email));
         }
-        //
         if (!empty($referenced_page_variables["messages"])) {
             return;
         }
         //
         $user = UsersModel::getUserGivenEmail($email);
         //
-        if ($user
+        if (!($user
                 //
                 && ($for_active_users ? UsersLibrary::isUserActive($user) : (!UsersLibrary::isUserActive($user)))
                 //        
-                && (empty($user[Config::RESET_DATE_VARIABLE_NAME]) || (time() - strtotime($user[Config::RESET_DATE_VARIABLE_NAME])) >= Consts::MAX_EMAIL_SESSION_LENGTH)) {
-            $actual_date = date("Y-m-d H:i:s");
-            //
-            $url = Config::APP_SITE;
-            if ($referenced_page_variables["page_lang"] != $default_language) {
-                $url .= "/" . $referenced_page_variables["page_lang"];
-            }
-            $url .= "/" . Consts::SET_PASSWORD_PAGE_NAME . "?hash=" . hash("sha256", $user[Config::ID_VARIABLE_NAME] . "|" . $user[Config::PASSWORD_VARIABLE_NAME] . "|" . $actual_date);
-            //
-            $message = "<p>"
-                    . htmlspecialchars($for_active_users ? $page_dictionary["messages"]["password_retrieve_mail"] : $page_dictionary["messages"]["request_activation_link_mail"])
-                    . "</p>"
-                    . "<p>"
-                    . "<a href=\"" . $url . "\" target=\"_blank\">"
-                    . $url
-                    . "</a>"
-                    . "</p>";
-            if (MailLibrary::sendMail($email, $page_dictionary["pages"]["password_recovery"] . " - " . $page_dictionary["app_title"], $message)) {
-                UsersModel::editResetDate($user[Config::ID_VARIABLE_NAME], $actual_date);
-                $referenced_page_variables["messages"][] = (object) [
-                            "type" => "success",
-                            "lemma" => ($for_active_users ? "password_retrieve_successful" : "request_activation_link_successful"),
-                            "parameters" => null
-                ];
-                $referenced_page_variables["hide_form"] = true;
-            } else {
-                $referenced_page_variables["messages"][] = (object) [
-                            "type" => "warning",
-                            "lemma" => ($for_active_users ? "password_retrieve_error" : "request_activation_link_error"),
-                            "parameters" => null
-                ];
-            }
+                && (empty($user[Config::RESET_DATE_VARIABLE_NAME]) || (time() - strtotime($user[Config::RESET_DATE_VARIABLE_NAME])) >= Consts::MAX_EMAIL_WAITING_LENGTH))
+                //
+                || UsersLibrary::isUserSuspended($user)) {
+            $referenced_page_variables["messages"][] = (object) [
+                        "type" => "warning",
+                        "lemma" => ($for_active_users ? "password_retrieve_error" : "request_activation_link_error"),
+                        "parameters" => null
+            ];
+            return;
+        }
+        //
+        $actual_date = date("Y-m-d H:i:s");
+        //
+        $url = Config::APP_SITE;
+        if ($referenced_page_variables["page_lang"] != $default_language) {
+            $url .= "/" . $referenced_page_variables["page_lang"];
+        }
+        $url .= "/" . Consts::SET_PASSWORD_PAGE_NAME . "?hash=" . hash("sha256", $user[Config::ID_VARIABLE_NAME] . "|" . $user[Config::PASSWORD_VARIABLE_NAME] . "|" . $actual_date);
+        //
+        $message = "<p>"
+                . htmlspecialchars($for_active_users ? $page_dictionary["messages"]["password_retrieve_mail"] : $page_dictionary["messages"]["request_activation_link_mail"])
+                . "</p>"
+                . "<p>"
+                . "<a href=\"" . $url . "\" target=\"_blank\">"
+                . $url
+                . "</a>"
+                . "</p>";
+        if (MailLibrary::sendMail($email, $page_dictionary["pages"]["password_recovery"] . " - " . $page_dictionary["app_title"], $message)) {
+            UsersModel::editResetDate($user[Config::ID_VARIABLE_NAME], $actual_date);
+            $referenced_page_variables["messages"][] = (object) [
+                        "type" => "success",
+                        "lemma" => ($for_active_users ? "password_retrieve_successful" : "request_activation_link_successful"),
+                        "parameters" => null
+            ];
+            $referenced_page_variables["hide_form"] = true;
         } else {
             $referenced_page_variables["messages"][] = (object) [
                         "type" => "warning",
@@ -261,25 +271,21 @@ class Controller {
                         "parameters" => null
             ];
             $referenced_page_variables["form_status"] = -1;
-        }
-        //
-        if (!empty($referenced_page_variables["messages"])) {
             return;
         }
         //
         $user = UsersModel::getUserGivenHash($hash);
         if (empty($user)
                 //
-                || (time() - strtotime($user[Config::RESET_DATE_VARIABLE_NAME])) >= Consts::MAX_EMAIL_SESSION_LENGTH) {
+                || (time() - strtotime($user[Config::RESET_DATE_VARIABLE_NAME])) >= Consts::MAX_EMAIL_WAITING_LENGTH
+                //
+                || UsersLibrary::isUserSuspended($user)) {
             $referenced_page_variables["messages"][] = (object) [
                         "type" => "warning",
                         "lemma" => "invalid_hash_for_password_recovery",
                         "parameters" => null
             ];
             $referenced_page_variables["form_status"] = -1;
-        }
-        //
-        if (!empty($referenced_page_variables["messages"])) {
             return;
         }
         //
@@ -308,7 +314,6 @@ class Controller {
         } else {
             $referenced_page_variables["messages"] = array_merge($referenced_page_variables["messages"], UsersLibrary::checkPassword($password_2, "password_2"));
         }
-        //
         if (!empty($referenced_page_variables["messages"])) {
             return;
         }
@@ -319,9 +324,15 @@ class Controller {
                         "lemma" => "passwords_mismatch",
                         "parameters" => null
             ];
+            return;
         }
         //
-        if (!empty($referenced_page_variables["messages"])) {
+        if ($user[Config::LAST_PASSWORD_DATE_VARIABLE_NAME] && password_verify($password_1, $user[Config::PASSWORD_VARIABLE_NAME])) {
+            $referenced_page_variables["messages"][] = (object) [
+                        "type" => "warning",
+                        "lemma" => "changing_password_error",
+                        "parameters" => null
+            ];
             return;
         }
         //
@@ -369,28 +380,29 @@ class Controller {
         } else {
             $referenced_page_variables["messages"] = array_merge($referenced_page_variables["messages"], UsersLibrary::checkUsername($username));
         }
+        if (!empty($referenced_page_variables["messages"])) {
+            return;
+        }
         //
-        if (empty($referenced_page_variables["messages"])) {
-            if ($referenced_page_variables["logged_user"] && password_verify($password, $referenced_page_variables["logged_user"][Config::PASSWORD_VARIABLE_NAME])) {
-                // update username
-                UsersModel::editUsername($referenced_page_variables["logged_user"][Config::ID_VARIABLE_NAME], $username);
-                $user = UsersModel::getUserGivenId($referenced_page_variables["logged_user"][Config::ID_VARIABLE_NAME]);
-                UsersModel::storeIntoSession($user);
-                $referenced_page_variables["logged_user"] = UsersModel::getFromSession();
-                //
-                $referenced_page_variables["messages"][] = (object) [
-                            "type" => "success",
-                            "lemma" => "changing_username_successful",
-                            "parameters" => null
-                ];
-                $referenced_page_variables["hide_form"] = true;
-            } else {
-                $referenced_page_variables["messages"][] = (object) [
-                            "type" => "warning",
-                            "lemma" => "changing_username_error",
-                            "parameters" => null
-                ];
-            }
+        if (password_verify($password, $referenced_page_variables["logged_user"][Config::PASSWORD_VARIABLE_NAME])) {
+            // update username
+            UsersModel::editUsername($referenced_page_variables["logged_user"][Config::ID_VARIABLE_NAME], $username);
+            $user = UsersModel::getUserGivenId($referenced_page_variables["logged_user"][Config::ID_VARIABLE_NAME]);
+            UsersModel::storeIntoSession($user);
+            $referenced_page_variables["logged_user"] = UsersModel::getFromSession();
+            //
+            $referenced_page_variables["messages"][] = (object) [
+                        "type" => "success",
+                        "lemma" => "changing_username_successful",
+                        "parameters" => null
+            ];
+            $referenced_page_variables["hide_form"] = true;
+        } else {
+            $referenced_page_variables["messages"][] = (object) [
+                        "type" => "warning",
+                        "lemma" => "changing_username_error",
+                        "parameters" => null
+            ];
         }
     }
 
@@ -403,78 +415,149 @@ class Controller {
         $referenced_page_variables["messages"] = [];
         $referenced_page_variables["hide_form"] = false;
         //
-        if (filter_input(INPUT_SERVER, "REQUEST_METHOD") == "POST") {
-            $old_password = filter_input(INPUT_POST, "old_password");
-            $new_password_1 = filter_input(INPUT_POST, "new_password_1");
-            $new_password_2 = filter_input(INPUT_POST, "new_password_2");
-            // check passwords
-            if (empty($old_password)) {
-                $referenced_page_variables["messages"][] = (object) [
-                            "type" => "warning",
-                            "lemma" => "empty_old_password",
-                            "parameters" => null
-                ];
-            } else {
-                $referenced_page_variables["messages"] = array_merge($referenced_page_variables["messages"], UsersLibrary::checkPassword($old_password, "old_password"));
-            }
-            if (empty($new_password_1)) {
-                $referenced_page_variables["messages"][] = (object) [
-                            "type" => "warning",
-                            "lemma" => "empty_new_password_1",
-                            "parameters" => null
-                ];
-            } else {
-                $referenced_page_variables["messages"] = array_merge($referenced_page_variables["messages"], UsersLibrary::checkPassword($new_password_1, "new_password_1"));
-            }
-            if (empty($new_password_2)) {
-                $referenced_page_variables["messages"][] = (object) [
-                            "type" => "warning",
-                            "lemma" => "empty_new_password_2",
-                            "parameters" => null
-                ];
-            } else {
-                $referenced_page_variables["messages"] = array_merge($referenced_page_variables["messages"], UsersLibrary::checkPassword($new_password_2, "new_password_2"));
-            }
-            //
-            if (empty($referenced_page_variables["messages"])) {
-                if ($new_password_1 != $new_password_2) {
-                    $referenced_page_variables["messages"][] = (object) [
-                                "type" => "warning",
-                                "lemma" => "new_passwords_mismatch",
-                                "parameters" => null
-                    ];
-                }
-            }
-            //
-            if (empty($referenced_page_variables["messages"])) {
-                if ($referenced_page_variables["logged_user"] && password_verify($old_password, $referenced_page_variables["logged_user"][Config::PASSWORD_VARIABLE_NAME])) {
-                    UsersModel::editPassword($referenced_page_variables["logged_user"][Config::ID_VARIABLE_NAME], $new_password_1);
-                    UsersModel::deleteFromSession();
-                    $referenced_page_variables["messages"][] = (object) [
-                                "type" => "success",
-                                "lemma" => "changing_password_successful",
-                                "parameters" => null
-                    ];
-                    $referenced_page_variables["hide_form"] = true;
-                } else {
-                    $referenced_page_variables["messages"][] = (object) [
-                                "type" => "warning",
-                                "lemma" => "changing_password_error",
-                                "parameters" => null
-                    ];
-                }
-            }
+        if (filter_input(INPUT_SERVER, "REQUEST_METHOD") != "POST") {
+            return;
         }
+        //
+        $old_password = filter_input(INPUT_POST, "old_password");
+        $new_password_1 = filter_input(INPUT_POST, "new_password_1");
+        $new_password_2 = filter_input(INPUT_POST, "new_password_2");
+        // check passwords
+        if (empty($old_password)) {
+            $referenced_page_variables["messages"][] = (object) [
+                        "type" => "warning",
+                        "lemma" => "empty_old_password",
+                        "parameters" => null
+            ];
+        } else {
+            $referenced_page_variables["messages"] = array_merge($referenced_page_variables["messages"], UsersLibrary::checkPassword($old_password, "old_password"));
+        }
+        if (empty($new_password_1)) {
+            $referenced_page_variables["messages"][] = (object) [
+                        "type" => "warning",
+                        "lemma" => "empty_new_password_1",
+                        "parameters" => null
+            ];
+        } else {
+            $referenced_page_variables["messages"] = array_merge($referenced_page_variables["messages"], UsersLibrary::checkPassword($new_password_1, "new_password_1"));
+        }
+        if (empty($new_password_2)) {
+            $referenced_page_variables["messages"][] = (object) [
+                        "type" => "warning",
+                        "lemma" => "empty_new_password_2",
+                        "parameters" => null
+            ];
+        } else {
+            $referenced_page_variables["messages"] = array_merge($referenced_page_variables["messages"], UsersLibrary::checkPassword($new_password_2, "new_password_2"));
+        }
+        if (!empty($referenced_page_variables["messages"])) {
+            return;
+        }
+        //
+        if ($new_password_1 != $new_password_2) {
+            $referenced_page_variables["messages"][] = (object) [
+                        "type" => "warning",
+                        "lemma" => "new_passwords_mismatch",
+                        "parameters" => null
+            ];
+            return;
+        }
+        //
+        if ($old_password == $new_password_1 || !password_verify($old_password, $referenced_page_variables["logged_user"][Config::PASSWORD_VARIABLE_NAME])) {
+            $referenced_page_variables["messages"][] = (object) [
+                        "type" => "warning",
+                        "lemma" => "changing_password_error",
+                        "parameters" => null
+            ];
+            return;
+        }
+        //
+        UsersModel::editPassword($referenced_page_variables["logged_user"][Config::ID_VARIABLE_NAME], $new_password_1);
+        UsersModel::deleteFromSession();
+        $referenced_page_variables["logged_user"] = UsersModel::getFromSession();
+        $referenced_page_variables["messages"][] = (object) [
+                    "type" => "success",
+                    "lemma" => "changing_password_successful",
+                    "parameters" => null
+        ];
+        $referenced_page_variables["hide_form"] = true;
+    }
+
+    /**
+     * 
+     * @param array $referenced_page_variables
+     * @return void
+     */
+    private static function _setUnsubscribeFromTheSiteValues(array &$referenced_page_variables): void {
+        $referenced_page_variables["messages"] = [];
+        $referenced_page_variables["hide_form"] = false;
+        //
+        if (filter_input(INPUT_SERVER, "REQUEST_METHOD") != "POST") {
+            return;
+        }
+        // get values
+        $password = filter_input(INPUT_POST, "password");
+        $confirm_unsubscription = filter_input(INPUT_POST, "confirm_unsubscription");
+        // check password value
+        if (empty($password)) {
+            $referenced_page_variables["messages"][] = (object) [
+                        "type" => "warning",
+                        "lemma" => "empty_password",
+                        "parameters" => null
+            ];
+        } else {
+            $referenced_page_variables["messages"] = array_merge($referenced_page_variables["messages"], UsersLibrary::checkPassword($password, "password"));
+        }
+        if (!empty($referenced_page_variables["messages"])) {
+            return;
+        }
+        //
+        if (!$confirm_unsubscription) {
+            $referenced_page_variables["messages"][] = (object) [
+                        "type" => "warning",
+                        "lemma" => "unsubscription_not_confirmed",
+                        "parameters" => null
+            ];
+            return;
+        }
+        //
+        if ($referenced_page_variables["logged_user"][Config::ROLE_VARIABLE_NAME] == Config::ADMIN_ROLE_VALUE || !password_verify($password, $referenced_page_variables["logged_user"][Config::PASSWORD_VARIABLE_NAME])) {
+            $referenced_page_variables["messages"][] = (object) [
+                        "type" => "warning",
+                        "lemma" => "unsubscribing_from_the_site_error",
+                        "parameters" => null
+            ];
+            return;
+        }
+        //
+        UsersModel::activateUser($referenced_page_variables["logged_user"][Config::ID_VARIABLE_NAME], false);
+        UsersModel::deleteFromSession();
+        $referenced_page_variables["logged_user"] = UsersModel::getFromSession();
+        $referenced_page_variables["messages"][] = (object) [
+                    "type" => "success",
+                    "lemma" => "unsubscribing_from_the_site_successful",
+                    "parameters" => null
+        ];
+        $referenced_page_variables["hide_form"] = true;
+    }
+
+    /**
+     * 
+     * @param array $referenced_page_variables
+     * @return void
+     */
+    private static function _setLogoutValues(array &$referenced_page_variables): void {
+        UsersModel::deleteFromSession();
+        $referenced_page_variables["logged_user"] = UsersModel::getFromSession();
     }
 
     /**
      * 
      * @param string $view_name
      * @param string $page_lang
-     * @param string|null $query_string
      * @return void
      */
-    public static function echoPage(string $view_name, string $page_lang, ?string $query_string): void {
+    public static function echoPage(string $view_name, string $page_lang): void {
         $page_variables = [];
         // get temporary variables
         $temp_variables = [];
@@ -496,7 +579,7 @@ class Controller {
                         $page_variables["view_filename"] = $temp_variables["view_filename"];
                     }
                 } else {
-                    if (in_array($view_name, [Consts::VIEW_USER_INFO_PAGE_NAME, Consts::CHANGE_USERNAME_PAGE_NAME, Consts::CHANGE_PASSWORD_PAGE_NAME, Consts::LOGOUT_PAGE_NAME])) {
+                    if (in_array($view_name, [Consts::VIEW_USER_INFO_PAGE_NAME, Consts::CHANGE_USERNAME_PAGE_NAME, Consts::CHANGE_PASSWORD_PAGE_NAME, Consts::UNSUBSCRIBE_FROM_THE_SITE_PAGE_NAME, Consts::LOGOUT_PAGE_NAME])) {
                         $page_variables["page_name"] = Consts::HTTP_401_PAGE_NAME;
                         $page_variables["view_filename"] = Consts::ERROR_401_PAGE_FILENAME;
                     } else {
@@ -558,14 +641,14 @@ class Controller {
             self::_setChangeUsernameValues($page_variables);
         } else if ($page_variables["page_name"] == Consts::CHANGE_PASSWORD_PAGE_NAME) {
             self::_setChangePasswordValues($page_variables);
+        } else if ($page_variables["page_name"] == Consts::UNSUBSCRIBE_FROM_THE_SITE_PAGE_NAME) {
+            self::_setUnsubscribeFromTheSiteValues($page_variables);
         } else if ($page_variables["page_name"] == Consts::LOGOUT_PAGE_NAME) {
-            UsersModel::deleteFromSession();
-            $page_variables["redirect_to_home_filename"] = Consts::REDIRECT_TO_HOME_TEMPLATE_FILENAME;
+            self::_setLogoutValues($page_variables);
         }
         // unset original variables
         unset($view_name);
         unset($page_lang);
-        unset($query_string);
         // unset temporary variables
         unset($temp_variables);
         // convert variables from array to object

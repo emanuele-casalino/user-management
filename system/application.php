@@ -10,10 +10,9 @@ class Application {
     /**
      * 
      * @param string $path_string
-     * @param string|null $query_string
      * @return void
      */
-    public static function echoPage(string $path_string, ?string $query_string): void {
+    public static function echoPage(string $path_string): void {
         $path_array = explode("/", $path_string);
         if ($path_array[1] != Config::APP_DIR) {
             die("Wrong application directory!");
@@ -49,7 +48,7 @@ class Application {
                 $page_lang = LanguageLibrary::getDefaultLanguage();
                 break;
         }
-        Controller::echoPage($view_name, $page_lang, $query_string);
+        Controller::echoPage($view_name, $page_lang);
     }
 
 }
