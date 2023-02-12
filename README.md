@@ -16,6 +16,18 @@ Questo file serve per configurare il funzionamento del programmino. In particola
 - la lunghezza massima dell'indirizzo di posta elettronica
 - quale valore dare all'utente qualora fosse attivo (true o false)
 
+# File system/consts.php
+
+Questo file contiene le costanti per il funzionamento del programmino: In particolare:
+- le costanti sui nomi di directory del programmino
+- le costanti sui nomi di file del programmino
+- la lingua predefinita, e quelle disponibili
+- le costanti sulla durata di alcuni eventi:
+  - la durata massima della sessione di accesso è di un'ora
+  - la durata massima di attesa di ricezione email dal programmino è di un'ora, alla fine di evitare lo spam da parte del programmino stesso
+  - la durata massima di una password è di 30 giorni
+- le costanti sulle variabili di sessione
+
 # Lingue
 
 Questo programmino è tradotto in due lingue:
@@ -57,7 +69,42 @@ Questo programmino ha dodici pagine:
   - unsubscribe_from_the_site - serve per annullare l'iscrizione al sito sul quale si trova il programmino
   - logout - serve per effettuare l'uscita dal programmino
 
-## Login
+## Accesso
 
 Nella pagina di login si effettua l'accesso tramite username e password. Il login viene effettuato:
-- se l'utente e attivo e non sospeso.
+- se l'utente è attivo e non sospeso.
+- se la data dell'ultima password è troppo vecchia
+
+## Recupero password
+
+Nella pagina di recupero password, è sufficiente immettere l'indirizzo di posta elettronica. Questa operazione ha successo:
+- quando esiste l'utente con l'indirizzo di posta elettronica immesso
+- se tale utente è attivo e non sospeso
+- se l'ultimo messaggio tramite posta elettronica associato all'indirizzo immesso è stato mandato più di un'ora prima
+In caso di successo dell'operazione, il link inviato tramite posta elettronica ha la validità di un'ora.
+
+## Richiesta link di attivazione
+
+Come la pagina precedente, ma l'utente non deve essere attivo ma comunque non sospeso.
+
+## Imposta password
+
+Accessibile dal link inviato tramite messaggio di posta elettronica tramite le due pagine precedenti, serve comunque una stringa di hash con la quale recuperare l'utente, il quale non deve essere comunque sospeso, a prescindere dal fatto che sia attivo o no.
+Attenzione! Se è passata più di un'ora dall'invio del link di attivazione, deve essere generato un nuovo link di attivazione.
+Nel form dell'impostazione della password, si devono immettere due stringhe, le quali devono coincidere.
+Se si tenta di impostare la password, se è già stata impostata, uguale a quella già immessa, viene generato un messaggio di errore.
+
+## Modifica nome utente
+
+Serve per modificare il nome utente dell'utente loggato.
+N.B. Viene richiesta la password in quanto si tratta di una modifica alle informazioni di base dell'utente.
+
+## Modifica password
+
+Serve per modificare la password dell'utente loggato.
+Richiede tre stringhe: la password vecchia, e le due stringhe che costituiscono la nuova password da immettere e che, quindi, devono essere uguali. Se la password vecchia non corrisponde a quella registrata, oppure è uguale alla password nuova, viene generato un messaggio di errore. 
+
+## Annulla l'iscrizione dal sito
+
+Serve per annullare l'iscrizione dal sito. C'è una checkbox, di default deselezionata, al fine di prevenire un'annullamento accidentale dell'iscrizione dal sito.
+N.B. Viene richiesta la password in quanto si tratta di una modifica alle informazioni di base dell'utente.
