@@ -1,9 +1,44 @@
 Salve a tutti.
 Questo programmino in PHP serve per permettere l'iscrizione al sito nel quale si trova, senza dover eventualmente compromettere il codice del sito stesso adibito alla gestione dati del sito stesso.
 
+# File system/config.php
+
+Questo file serve per configurare il funzionamento del programmino. In particolare:
+- il link del sito nel quale si trova il programmino, senza fare riferimento al programmino stesso
+- la directory del programmino
+- il link del programmino
+- i parametri di connessione al database
+- la tabella dove vengono memorizzate le informazioni dell'utente
+- gli attributi di base dell'utente
+- il nome del ruolo utilizzato per l'amministratore
+- i limiti sulle lunghezze del nome utente
+- i limiti sulle lunghezza della password, e il costo per l'algoritmo BCRYPT
+- la lunghezza massima dell'indirizzo di posta elettronica
+- quale valore dare all'utente qualora fosse attivo (true o false)
+
+# Lingue
+
 Questo programmino è tradotto in due lingue:
 - Italiano
 - Inglese
+
+# Utente
+
+Un utente deve almeno avere questi attributi:
+- ID
+- ruolo
+- nome utente
+- password
+- indirizzo di posta elettronica
+- se l'utente è attivo o meno
+- la data di reimpostazione
+- la data dell'ultima password
+- data e ora di creazione
+- data e ora di modifica
+
+Un utente è sospeso se non è attivo e se è impostata la data dell'ultima password.
+
+# Pagine
 
 Questo programmino ha dodici pagine:
 - Per tutti gli utenti:
@@ -21,3 +56,8 @@ Questo programmino ha dodici pagine:
   - change_password - serve per cambiare la password
   - unsubscribe_from_the_site - serve per annullare l'iscrizione al sito sul quale si trova il programmino
   - logout - serve per effettuare l'uscita dal programmino
+
+## Login
+
+Nella pagina di login si effettua l'accesso tramite username e password. Il login viene effettuato:
+- se l'utente e attivo e non sospeso.
